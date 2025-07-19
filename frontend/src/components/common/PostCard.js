@@ -63,37 +63,14 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
 
   // Enhanced vote function with proper user tracking
   const handleVote = async (voteType) => {
+    if (!currentUser || !currentUser.walletAddress) {
+      alert('Connect your wallet to vote!');
+      return;
+    }
     try {
-      const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
-      const existingVote = localStorage.getItem(`vote_${confession.tx_id}_${userIdentifier}`);
-      
-      let newVoteType = null;
-      let voteChange = 0;
-      
-      if (existingVote === voteType) {
-        localStorage.removeItem(`vote_${confession.tx_id}_${userIdentifier}`);
-        newVoteType = null;
-        voteChange = voteType === 'upvote' ? -1 : 1;
-      } else {
-        localStorage.setItem(`vote_${confession.tx_id}_${userIdentifier}`, voteType);
-        newVoteType = voteType;
-        
-        if (existingVote === 'upvote' && voteType === 'downvote') {
-          voteChange = -2;
-        } else if (existingVote === 'downvote' && voteType === 'upvote') {
-          voteChange = 2;
-        } else if (voteType === 'upvote') {
-          voteChange = 1;
-        } else {
-          voteChange = -1;
-        }
-      }
-      
-      setLiked(newVoteType === 'upvote');
-      setLikeCount(prev => prev + voteChange);
-      
+      // Send vote to backend with wallet address
       if (onVote) {
-        await onVote(confession.tx_id, voteType);
+        await onVote(confession.tx_id, voteType, currentUser.walletAddress);
       }
     } catch (error) {
       console.error('Error voting:', error);

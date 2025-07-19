@@ -232,7 +232,7 @@ class Reply(BaseModel):
 
 class VoteRequest(BaseModel):
     vote_type: str  # 'upvote' or 'downvote'
-    user_address: str = "anonymous"
+    wallet_address: str = "anonymous"
 
 class SearchRequest(BaseModel):
     query: Optional[str] = None
@@ -1013,27 +1013,32 @@ async def vote_confession(
     vote_request: VoteRequest,
     current_user: dict = Depends(get_current_user_optional)
 ):
-    """Vote on a confession"""
+    """Vote on a confession (one vote per wallet per post)"""
     try:
         if vote_request.vote_type not in ["upvote", "downvote"]:
             raise HTTPException(status_code=400, detail="Invalid vote type")
-        
+
         # Check if confession exists
         confession = await db.confessions.find_one({"$or": [{"id": confession_id}, {"tx_id": confession_id}]})
         if not confession:
             raise HTTPException(status_code=404, detail="Confession not found")
-        
-        # Determine user identifier
-        user_identifier = current_user["id"] if current_user else vote_request.user_address
-        
+
+        # Determine user identifier (wallet address or user id)
+        user_identifier = None
+        if current_user and current_user.get("wallet_address"):
+            user_identifier = current_user["wallet_address"]
+        elif vote_request.wallet_address and vote_request.wallet_address != "anonymous":
+            user_identifier = vote_request.wallet_address
+        else:
+            raise HTTPException(status_code=401, detail="Wallet address required to vote")
+
         # Check if user already voted
         existing_vote = await db.votes.find_one({
             "confession_id": confession["id"],
             "user_identifier": user_identifier
         })
-        
+
         if existing_vote:
-            # Update existing vote
             if existing_vote["vote_type"] == vote_request.vote_type:
                 raise HTTPException(status_code=400, detail="Already voted")
             else:
@@ -1043,7 +1048,6 @@ async def vote_confession(
                     {"id": existing_vote["id"]},
                     {"$set": {"vote_type": vote_request.vote_type, "timestamp": datetime.utcnow()}}
                 )
-                
                 # Update confession counts
                 if old_vote == "upvote":
                     await db.confessions.update_one(
@@ -1064,25 +1068,23 @@ async def vote_confession(
                 "vote_type": vote_request.vote_type,
                 "timestamp": datetime.utcnow()
             }
-            
             await db.votes.insert_one(vote_doc)
-            
             # Update confession vote count
             update_field = "upvotes" if vote_request.vote_type == "upvote" else "downvotes"
             await db.confessions.update_one(
                 {"id": confession["id"]},
                 {"$inc": {update_field: 1}}
             )
-        
+
         # Broadcast vote update
         await manager.broadcast(json.dumps({
             "type": "vote_update",
             "confession_id": confession["id"],
             "vote_type": vote_request.vote_type
         }))
-        
+
         return {"status": "success", "message": f"{vote_request.vote_type} recorded"}
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

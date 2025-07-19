@@ -315,7 +315,11 @@ function App() {
   };
 
   // Handle vote
-  const handleVote = async (txId, voteType) => {
+  const handleVote = async (txId, voteType, walletAddress) => {
+    if (!currentUser || !currentUser.walletAddress) {
+      showNotification('Connect your wallet to vote!', 'error');
+      return;
+    }
     try {
       const response = await fetch(`${API}/confessions/${txId}/vote`, {
         method: 'POST',
@@ -323,7 +327,7 @@ function App() {
           'Content-Type': 'application/json',
           ...(currentUser?.token && { 'Authorization': `Bearer ${currentUser.token}` })
         },
-        body: JSON.stringify({ vote_type: voteType })
+        body: JSON.stringify({ vote_type: voteType, wallet_address: walletAddress })
       });
 
       if (!response || !response.ok) {
