@@ -18,7 +18,7 @@ import subprocess
 import jwt
 from passlib.context import CryptContext
 import hashlib
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import anthropic
 import re
 from enum import Enum
 from collections import defaultdict
@@ -292,7 +292,7 @@ async def get_current_user_optional(authorization: Optional[str] = Header(None))
 async def analyze_content_with_claude(content: str, analysis_type: str = "moderation"):
     """Analyze content using Claude API"""
     try:
-        session_id = f"analysis_{int(time.time())}"
+        client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
         
         if analysis_type == "moderation":
             system_message = """You are a content moderation AI. Analyze the given confession for:
@@ -332,23 +332,28 @@ Respond with JSON format:
   "category": "personal|relationship|work|health|social|other"
 }"""
         
-        chat = LlmChat(
-            api_key=CLAUDE_API_KEY,
-            session_id=session_id,
-            system_message=system_message
-        ).with_model("anthropic", CLAUDE_MODEL)
+        message = await client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=1000,
+            system=system_message,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Analyze this confession: {content}"
+                }
+            ]
+        )
         
-        user_message = UserMessage(text=f"Analyze this confession: {content}")
-        response = await chat.send_message(user_message)
+        response_text = message.content[0].text
         
         # Parse JSON response
         try:
-            return json.loads(response.strip())
+            return json.loads(response_text.strip())
         except json.JSONDecodeError:
             # Fallback if JSON parsing fails
             return {
                 "error": "Failed to parse AI response",
-                "raw_response": response
+                "raw_response": response_text
             }
         
     except Exception as e:
