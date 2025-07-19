@@ -5,7 +5,7 @@ import Header from './components/layout/Header';
 import PostCard from './components/common/PostCard';
 
 // API configuration - Use production URL if available
-const API = process.env.REACT_APP_API_URL || 'https://irys-confession-backend.onrender.com';
+const API = process.env.REACT_APP_API_URL || 'https://irys-confession-backend.onrender.com/api';
 const WS_URL = process.env.REACT_APP_WS_URL || 'wss://irys-confession-backend.onrender.com/ws';
 
 // Notification system
@@ -224,7 +224,7 @@ function App() {
   useEffect(() => {
     const connectWebSocket = () => {
       try {
-        const websocket = new WebSocket(WS_URL);
+        const websocket = new WebSocket(`${WS_URL}/anonymous`);
         
         websocket.onopen = () => {
           console.log('WebSocket connected');
@@ -272,7 +272,7 @@ function App() {
   // Fetch network info
   const fetchNetworkInfo = async () => {
     try {
-      const response = await fetch(`${API}/network-info`);
+      const response = await fetch(`${API}/irys/network-info`);
       if (response && response.ok) {
         const data = await response.json();
         setNetworkInfo(data);
@@ -286,7 +286,7 @@ function App() {
   const fetchConfessions = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API}/confessions?filter=${activeFilter}`);
+      const response = await fetch(`${API}/confessions/public?sort_by=timestamp&order=desc`);
       if (response && response.ok) {
         const data = await response.json();
         setConfessions(data.confessions || []);
