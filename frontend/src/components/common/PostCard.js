@@ -44,18 +44,7 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'just now';
       
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffDays = Math.floor(diffHours / 24);
-
-      if (diffMinutes < 1) return 'just now';
-      if (diffMinutes < 60) return `${diffMinutes}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays === 1) return 'yesterday';
-      if (diffDays < 7) return `${diffDays}d ago`;
-      return date.toLocaleDateString();
+      return date.toLocaleString(); // Show local time
     } catch (error) {
       return 'just now';
     }
@@ -71,6 +60,10 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
       // Send vote to backend with wallet address
       if (onVote) {
         await onVote(confession.tx_id, voteType, currentUser.wallet_address);
+        // Update localStorage for this vote
+        const userIdentifier = currentUser.wallet_address;
+        localStorage.setItem(`vote_${confession.tx_id}_${userIdentifier}`, voteType);
+        setLiked(voteType === 'upvote');
       }
     } catch (error) {
       console.error('Error voting:', error);

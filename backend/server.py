@@ -666,7 +666,7 @@ async def create_confession(
         confession_data = {
             "content": confession.content,
             "is_public": confession.is_public,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
             "author": author,
             "mood": enhancement_analysis.get("mood", confession.mood),
             "tags": list(set(confession.tags + enhancement_analysis.get("tags", []))),
@@ -703,7 +703,7 @@ async def create_confession(
             "is_public": confession.is_public,
             "author": author,
             "author_id": author_id,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
             "verified": True,
             "gateway_url": irys_result["gateway_url"],
             "upvotes": 0,
@@ -817,7 +817,7 @@ async def create_reply(
             "content": reply.content,
             "author": author,
             "author_id": author_id,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
             "upvotes": 0,
             "downvotes": 0,
             "verified": False,
@@ -837,7 +837,7 @@ async def create_reply(
                 "confession_id": confession["id"],
                 "parent_reply_id": reply.parent_reply_id,
                 "author": author,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat() + 'Z'
             }
             
             irys_tags = [
