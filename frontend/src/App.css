@@ -58,6 +58,10 @@ body {
   overflow-x: hidden;
 }
 
+body, * {
+  cursor: url('/cursor.png'), pointer;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 12px;
