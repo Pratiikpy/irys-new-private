@@ -4,7 +4,8 @@ import {
   TrendingUp, Clock, Search, User, Settings, LogOut, LogIn,
   Shield, Zap, Globe, Lock, Unlock, Eye, EyeOff, Sparkles,
   ArrowUp, ArrowDown, Hash, Calendar, Users, Activity, Wallet,
-  MoreHorizontal, Bookmark, Flag, Send, Smile, Image, Video
+  MoreHorizontal, Bookmark, Flag, Send, Smile, Image, Video,
+  ChevronUp, ChevronDown, Award, Gift
 } from 'lucide-react';
 import AuthModal from './components/auth/AuthModal';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -14,7 +15,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://irys-confessio
 const API = `${BACKEND_URL}/api`;
 const WS_URL = process.env.REACT_APP_BACKEND_URL ? process.env.REACT_APP_BACKEND_URL.replace('http', 'ws') : 'wss://irys-confession-backend.onrender.com';
 
-// Enhanced Social Media Confession Card Component
+// Reddit-style Confession Card Component
 const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
   // Defensive checks to prevent React error #130
   if (!confession) {
@@ -57,35 +58,26 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
     }
   };
 
-  // Enhanced vote function with cool effects
-  const handleLike = async () => {
+  // Reddit-style vote function
+  const handleVote = async (voteType) => {
     try {
-      const newLiked = !liked;
+      const newLiked = voteType === 'upvote';
       
       // Add haptic feedback (mobile)
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
       
-      // Add particle effect
-      if (newLiked) {
-        createHeartParticles();
-      }
-      
       setLiked(newLiked);
-      setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
-      
-      // Add bounce animation
-      const button = document.querySelector(`[data-confession-id="${confession.tx_id}"] .vote-button`);
-      if (button) {
-        button.style.transform = 'scale(1.2)';
-        setTimeout(() => {
-          button.style.transform = 'scale(1)';
-        }, 200);
-      }
+      setLikeCount(prev => {
+        if (liked && voteType === 'upvote') return prev - 1; // Remove upvote
+        if (!liked && voteType === 'downvote') return prev + 1; // Remove downvote
+        if (voteType === 'upvote') return prev + 1; // Add upvote
+        return prev - 1; // Add downvote
+      });
       
       if (onVote) {
-        await onVote(confession.tx_id, newLiked ? 'upvote' : 'downvote');
+        await onVote(confession.tx_id, voteType);
       }
     } catch (error) {
       console.error('Error voting:', error);
@@ -94,39 +86,10 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
     }
   };
 
-  // Heart particles effect
-  const createHeartParticles = () => {
-    const hearts = ['❤️', '💖', '💕', '💗', '💓'];
-    for (let i = 0; i < 5; i++) {
-      setTimeout(() => {
-        const heart = document.createElement('div');
-        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        heart.style.position = 'fixed';
-        heart.style.left = `${Math.random() * window.innerWidth}px`;
-        heart.style.top = `${window.innerHeight}px`;
-        heart.style.fontSize = '20px';
-        heart.style.pointerEvents = 'none';
-        heart.style.zIndex = '9999';
-        heart.style.transition = 'all 2s ease-out';
-        document.body.appendChild(heart);
-        
-        setTimeout(() => {
-          heart.style.top = `${Math.random() * window.innerHeight}px`;
-          heart.style.opacity = '0';
-          setTimeout(() => {
-            document.body.removeChild(heart);
-          }, 2000);
-        }, 100);
-      }, i * 100);
-    }
-  };
-
   const handleShare = async () => {
     try {
       const shareUrl = `${window.location.origin}/confession/${confession.tx_id}`;
       await navigator.clipboard.writeText(shareUrl);
-      
-      // Show success notification
       showNotification('Link copied to clipboard!', 'success');
     } catch (error) {
       console.error('Error sharing:', error);
@@ -197,165 +160,189 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
   };
 
   return (
-    <div className={`confession-card ${confession.isNew ? 'new' : ''}`} data-confession-id={confession.tx_id}>
-      {/* Card Header */}
-      <div className="confession-header">
-        <div className="confession-author">
-          <div className="author-avatar">
-            <div className="avatar-circle">
-              {confession.author === 'anonymous' ? '👤' : confession.author.charAt(0).toUpperCase()}
-            </div>
-          </div>
-          <div className="author-info">
-            <span className="author-name">{confession.author}</span>
-            <span className="confession-time">{formatDate(confession.timestamp)}</span>
-          </div>
+    <div className={`reddit-post ${confession.isNew ? 'new' : ''}`} data-confession-id={confession.tx_id}>
+      {/* Reddit-style voting sidebar */}
+      <div className="vote-sidebar">
+        <button 
+          className={`vote-button upvote ${liked ? 'voted' : ''}`}
+          onClick={() => handleVote('upvote')}
+          title="Upvote"
+        >
+          <ChevronUp size={20} />
+        </button>
+        
+        <div className="vote-count">
+          {likeCount > 0 ? likeCount : likeCount < 0 ? likeCount : '•'}
         </div>
         
-        <div className="confession-actions">
-          <button 
-            className="action-button"
-            onClick={() => setShowOptions(!showOptions)}
-          >
-            <MoreHorizontal size={16} />
-          </button>
+        <button 
+          className={`vote-button downvote ${!liked && likeCount < 0 ? 'voted' : ''}`}
+          onClick={() => handleVote('downvote')}
+          title="Downvote"
+        >
+          <ChevronDown size={20} />
+        </button>
+      </div>
+
+      {/* Main content area */}
+      <div className="post-content">
+        {/* Post header */}
+        <div className="post-header">
+          <div className="post-meta">
+            <span className="subreddit">r/confessions</span>
+            <span className="posted-by">Posted by u/{confession.author}</span>
+            <span className="post-time">{formatDate(confession.timestamp)}</span>
+          </div>
           
-          {showOptions && (
-            <div className="options-dropdown">
-              <button onClick={handleBookmark} className="option-item">
-                <Bookmark size={16} />
-                {isBookmarked ? 'Remove bookmark' : 'Bookmark'}
-              </button>
-              <button onClick={handleReport} className="option-item">
-                <Flag size={16} />
-                Report
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Card Content */}
-      <div className="confession-content">
-        <p className="confession-text">{confession.content}</p>
-        
-        {/* Tags */}
-        {confession.tags && confession.tags.length > 0 && (
-          <div className="confession-tags">
-            {confession.tags.map((tag, index) => (
-              <span key={index} className="tag">
-                <Hash size={12} />
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        
-        {/* Mood indicator */}
-        {confession.mood && (
-          <div className="mood-indicator">
-            <Smile size={16} />
-            <span>{confession.mood}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Blockchain Verification */}
-      {confession.verified && (
-        <div className="blockchain-verification">
-          <Shield size={14} />
-          <span>Verified on Blockchain</span>
-          {confession.tx_id && (
-            <a 
-              href={`https://devnet.irys.xyz/${confession.tx_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="blockchain-link"
+          <div className="post-options">
+            <button 
+              className="options-button"
+              onClick={() => setShowOptions(!showOptions)}
             >
-              <ExternalLink size={12} />
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* Social Actions */}
-      <div className="confession-actions-bar">
-        <button 
-          className={`action-button vote-button ${liked ? 'liked' : ''}`}
-          onClick={handleLike}
-        >
-          <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
-          <span>{likeCount}</span>
-        </button>
-        
-        <button 
-          className="action-button"
-          onClick={toggleReplies}
-        >
-          <MessageCircle size={18} />
-          <span>{confession.reply_count || replies.length}</span>
-        </button>
-        
-        <button 
-          className="action-button"
-          onClick={handleShare}
-        >
-          <Share2 size={18} />
-        </button>
-        
-        <button 
-          className="action-button"
-          onClick={handleBookmark}
-        >
-          <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
-        </button>
-      </div>
-
-      {/* Reply Section */}
-      {showReplies && (
-        <div className="replies-section">
-          <div className="replies-header">
-            <h4>Replies ({replies.length})</h4>
-          </div>
-          
-          <div className="reply-form">
-            <form onSubmit={handleReply}>
-              <div className="reply-input-group">
-                <input
-                  type="text"
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder="Write a reply..."
-                  className="reply-input"
-                  disabled={isSubmittingReply}
-                />
-                <button 
-                  type="submit" 
-                  className="reply-submit"
-                  disabled={!replyContent.trim() || isSubmittingReply}
-                >
-                  <Send size={16} />
+              <MoreHorizontal size={16} />
+            </button>
+            
+            {showOptions && (
+              <div className="options-dropdown">
+                <button onClick={handleBookmark} className="option-item">
+                  <Bookmark size={16} />
+                  {isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+                </button>
+                <button onClick={handleReport} className="option-item">
+                  <Flag size={16} />
+                  Report
                 </button>
               </div>
-            </form>
-          </div>
-          
-          <div className="replies-list">
-            {replies.map((reply) => (
-              <div key={reply.id} className="reply-item">
-                <div className="reply-author">
-                  <div className="reply-avatar">
-                    {reply.author.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="reply-author-name">{reply.author}</span>
-                  <span className="reply-time">{formatDate(reply.timestamp)}</span>
-                </div>
-                <p className="reply-content">{reply.content}</p>
-              </div>
-            ))}
+            )}
           </div>
         </div>
-      )}
+
+        {/* Post title and content */}
+        <div className="post-body">
+          <h3 className="post-title">Confession</h3>
+          <div className="post-text">{confession.content}</div>
+          
+          {/* Tags */}
+          {confession.tags && confession.tags.length > 0 && (
+            <div className="post-tags">
+              {confession.tags.map((tag, index) => (
+                <span key={index} className="tag">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {/* Mood indicator */}
+          {confession.mood && (
+            <div className="mood-indicator">
+              <Smile size={16} />
+              <span>{confession.mood}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Blockchain verification */}
+        {confession.verified && (
+          <div className="blockchain-badge">
+            <Shield size={14} />
+            <span>Verified on Blockchain</span>
+            {confession.tx_id && (
+              <a 
+                href={`https://devnet.irys.xyz/${confession.tx_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="blockchain-link"
+              >
+                <ExternalLink size={12} />
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Post actions */}
+        <div className="post-actions">
+          <button 
+            className="action-button"
+            onClick={toggleReplies}
+          >
+            <MessageCircle size={18} />
+            <span>{confession.reply_count || replies.length} Comments</span>
+          </button>
+          
+          <button 
+            className="action-button"
+            onClick={handleShare}
+          >
+            <Share2 size={18} />
+            <span>Share</span>
+          </button>
+          
+          <button 
+            className="action-button"
+            onClick={handleBookmark}
+          >
+            <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+            <span>Save</span>
+          </button>
+          
+          <button className="action-button">
+            <Award size={18} />
+            <span>Give Award</span>
+          </button>
+        </div>
+
+        {/* Reply section */}
+        {showReplies && (
+          <div className="replies-section">
+            <div className="reply-form">
+              <form onSubmit={handleReply}>
+                <div className="reply-input-group">
+                  <textarea
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="What are your thoughts?"
+                    className="reply-textarea"
+                    disabled={isSubmittingReply}
+                    rows={3}
+                  />
+                  <button 
+                    type="submit" 
+                    className="reply-submit"
+                    disabled={!replyContent.trim() || isSubmittingReply}
+                  >
+                    {isSubmittingReply ? 'Posting...' : 'Comment'}
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            <div className="replies-list">
+              {replies.map((reply) => (
+                <div key={reply.id} className="reply-item">
+                  <div className="reply-header">
+                    <span className="reply-author">u/{reply.author}</span>
+                    <span className="reply-time">{formatDate(reply.timestamp)}</span>
+                  </div>
+                  <div className="reply-content">{reply.content}</div>
+                  <div className="reply-actions">
+                    <button className="reply-action">
+                      <ChevronUp size={14} />
+                      <span>{reply.upvotes || 0}</span>
+                    </button>
+                    <button className="reply-action">
+                      <ChevronDown size={14} />
+                    </button>
+                    <button className="reply-action">Reply</button>
+                    <button className="reply-action">Share</button>
+                    <button className="reply-action">Report</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
