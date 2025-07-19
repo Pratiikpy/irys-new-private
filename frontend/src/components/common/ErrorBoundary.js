@@ -19,11 +19,11 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="error-boundary">
           <div className="error-content">
-            <h2>Something went wrong</h2>
-            <p>Don't worry, this is just a temporary issue. Please refresh the page to continue.</p>
+            <h3>Something went wrong</h3>
+            <p>We're sorry, but something unexpected happened. Please refresh the page to try again.</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="retry-button"
+              className="error-retry-btn"
             >
               Refresh Page
             </button>

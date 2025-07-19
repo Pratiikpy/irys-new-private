@@ -332,7 +332,7 @@ Respond with JSON format:
   "category": "personal|relationship|work|health|social|other"
 }"""
         
-        message = await client.messages.create(
+        message = client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=1000,
             system=system_message,
@@ -749,11 +749,12 @@ async def create_confession(
             "id": confession_doc["id"],
             "tx_id": irys_result["tx_id"],
             "gateway_url": irys_result["gateway_url"],
+            "blockchain_url": f"https://devnet.irys.xyz/{irys_result['tx_id']}",
             "share_url": f"/#/c/{irys_result['tx_id']}" + ("" if confession.is_public else f"#{author}"),
             "verified": True,
             "ai_analysis": confession_data["ai_analysis"],
             "crisis_support": crisis_level in ["high", "critical"],
-            "message": "Confession posted successfully!"
+            "message": "Confession posted successfully! View on blockchain: https://devnet.irys.xyz/" + irys_result["tx_id"]
         }
         
     except Exception as e:
@@ -1296,7 +1297,16 @@ async def get_platform_stats():
         # Get stats for last 24 hours
         last_24h = datetime.utcnow() - timedelta(hours=24)
         confessions_24h = await db.confessions.count_documents({"timestamp": {"$gte": last_24h}})
-        users_24h = await db.users.count_documents({"created_at": {"$gte": last_24h}})
+        
+        # Count unique users who posted confessions in last 24h
+        users_24h_pipeline = [
+            {"$match": {"timestamp": {"$gte": last_24h}}},
+            {"$group": {"_id": "$author"}},
+            {"$count": "unique_users"}
+        ]
+        users_24h_cursor = db.confessions.aggregate(users_24h_pipeline)
+        users_24h_result = await users_24h_cursor.to_list(length=1)
+        users_24h = users_24h_result[0]["unique_users"] if users_24h_result else 0
         
         # Get mood distribution
         mood_pipeline = [

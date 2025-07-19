@@ -23,7 +23,7 @@ services:
       - key: MONGO_URL
         value: mongodb+srv://apkadost888:IGoA3LPmnmhiSVRF@cluster0.rbnfgn0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true&tlsAllowInvalidCertificates=true
       - key: CLAUDE_API_KEY
-        value: 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
+        value: YOUR_NEW_CLAUDE_API_KEY_HERE
       - key: JWT_SECRET
         generateValue: true
       - key: PORT

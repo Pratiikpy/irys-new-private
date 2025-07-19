@@ -6,6 +6,7 @@ import {
   ArrowUp, ArrowDown, Hash, Calendar, Users, Activity, Wallet
 } from 'lucide-react';
 import AuthModal from './components/auth/AuthModal';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://irys-confession-backend.onrender.com';
@@ -14,6 +15,11 @@ const WS_URL = process.env.REACT_APP_BACKEND_URL ? process.env.REACT_APP_BACKEND
 
 // Professional Confession Card Component
 const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
+  // Defensive checks to prevent React error #130
+  if (!confession) {
+    console.error('ConfessionCard: confession prop is undefined');
+    return null;
+  }
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(confession.upvotes || 0);
   const [showReplies, setShowReplies] = useState(false);
@@ -516,6 +522,11 @@ const ComposeModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
 
 // Professional Header Component
 const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
+  // Defensive checks to prevent React error #130
+  if (!onLogin || !onLogout || !onSettings) {
+    console.error('Header: Missing required callback props');
+    return null;
+  }
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
@@ -764,10 +775,14 @@ function App() {
         url = `${API}/confessions/public?sort_by=upvotes&order=desc`;
       }
       
+      console.log('Fetching confessions from:', url);
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        console.log('Confessions data:', data);
         setConfessions(data.confessions || []);
+      } else {
+        console.error('Failed to fetch confessions:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching confessions:', error);
@@ -806,8 +821,9 @@ function App() {
     
     setConfessions(prev => [confessionWithAnimation, ...prev]);
     
-    // Add celebration effect
-    showNotification('🎉 Confession posted to blockchain!', 'success');
+    // Show blockchain link
+    const blockchainUrl = newConfession.blockchain_url || `https://devnet.irys.xyz/${newConfession.tx_id}`;
+    showNotification(`🎉 Confession posted! View on blockchain: ${blockchainUrl}`, 'success');
     
     // Add confetti effect
     createConfetti();
@@ -939,79 +955,81 @@ function App() {
   }, [activeFilter]);
 
   return (
-    <div className="app">
-      <Header 
-        currentUser={currentUser}
-        onLogin={handleLogin}
-        onLogout={handleLogout}
-        onSettings={handleSettings}
-      />
-      
-      <FilterBar 
-        activeFilter={activeFilter}
-        onFilterChange={handleFilterChange}
-        stats={stats}
-      />
+    <ErrorBoundary>
+      <div className="app">
+        <Header 
+          currentUser={currentUser}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onSettings={handleSettings}
+        />
+        
+        <FilterBar 
+          activeFilter={activeFilter}
+          onFilterChange={handleFilterChange}
+          stats={stats}
+        />
 
-      <main className="main-content">
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Loading confessions from blockchain...</p>
-          </div>
-        ) : confessions.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-image">
-              <img src="/irys-banner.png" alt="Irys Confessions" className="irys-banner" />
+        <main className="main-content">
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Loading confessions from blockchain...</p>
             </div>
-            <h3>No confessions yet</h3>
-            <p>Be the first to share your thoughts anonymously on the blockchain!</p>
-            <button onClick={() => setShowCompose(true)} className="cta-button">
-              <Plus size={16} />
-              Post First Confession
-            </button>
-          </div>
-        ) : (
-          <div className="confessions-grid">
-            {confessions.map((confession) => (
-              <ConfessionCard
-                key={confession.tx_id}
-                confession={confession}
-                onVote={handleVote}
-                currentUser={currentUser}
-              />
-            ))}
+          ) : confessions.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-image">
+                <img src="/irys-banner.png" alt="Irys Confessions" className="irys-banner" />
+              </div>
+              <h3>No confessions yet</h3>
+              <p>Be the first to share your thoughts anonymously on the blockchain!</p>
+              <button onClick={() => setShowCompose(true)} className="cta-button">
+                <Plus size={16} />
+                Post First Confession
+              </button>
+            </div>
+          ) : (
+            <div className="confessions-grid">
+              {confessions.map((confession) => (
+                <ConfessionCard
+                  key={confession.tx_id || confession.id}
+                  confession={confession}
+                  onVote={handleVote}
+                  currentUser={currentUser}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+
+        <Fab onClick={() => setShowCompose(true)} />
+
+        <ComposeModal
+          isOpen={showCompose}
+          onClose={() => setShowCompose(false)}
+          onSubmit={handleNewConfession}
+          currentUser={currentUser}
+        />
+
+        <AuthModal
+          isOpen={showAuth}
+          onClose={() => setShowAuth(false)}
+          onSuccess={handleAuthSuccess}
+        />
+
+        {networkInfo && (
+          <div className="network-status">
+            <div className="network-indicator">
+              <div className="status-dot online"></div>
+              <span>Connected to Irys {networkInfo.network}</span>
+            </div>
+            <div className="irys-branding">
+              <img src="/irys-eyes.png" alt="Irys" className="irys-eyes" />
+            </div>
           </div>
         )}
-      </main>
-
-      <Fab onClick={() => setShowCompose(true)} />
-
-      <ComposeModal
-        isOpen={showCompose}
-        onClose={() => setShowCompose(false)}
-        onSubmit={handleNewConfession}
-        currentUser={currentUser}
-      />
-
-      <AuthModal
-        isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
-        onSuccess={handleAuthSuccess}
-      />
-
-      {networkInfo && (
-        <div className="network-status">
-          <div className="network-indicator">
-            <div className="status-dot online"></div>
-            <span>Connected to Irys {networkInfo.network}</span>
-          </div>
-          <div className="irys-branding">
-            <img src="/irys-eyes.png" alt="Irys" className="irys-eyes" />
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 
