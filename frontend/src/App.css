@@ -116,6 +116,19 @@ body {
   background-clip: text;
 }
 
+.irys-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.irys-logo:hover {
+  transform: scale(1.1);
+}
+
 .tagline {
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -349,6 +362,24 @@ body {
 .empty-state p {
   margin-bottom: var(--spacing-lg);
   font-size: 1.1rem;
+}
+
+.empty-state-image {
+  margin-bottom: var(--spacing-lg);
+}
+
+.irys-banner {
+  max-width: 400px;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.irys-banner:hover {
+  opacity: 1;
 }
 
 .cta-button {
@@ -869,6 +900,13 @@ body {
   gap: var(--spacing-sm);
 }
 
+.modal-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .modal-close {
   background: none;
   border: none;
@@ -1261,6 +1299,24 @@ body {
 .status-dot.online {
   background: var(--secondary);
   animation: pulse 2s infinite;
+}
+
+.irys-branding {
+  position: absolute;
+  right: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.irys-eyes {
+  width: 40px;
+  height: 40px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.irys-eyes:hover {
+  opacity: 1;
 }
 
 /* Error Boundary */

@@ -393,7 +393,7 @@ const ComposeModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">
-            <Sparkles size={20} />
+            <img src="/irys-logo.png" alt="Irys" className="modal-logo" />
             New Confession
           </h2>
           <button onClick={onClose} className="modal-close">
@@ -523,7 +523,7 @@ const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
       <div className="header-content">
         <div className="header-left">
           <div className="logo">
-            <Sparkles size={24} />
+            <img src="/irys-logo.png" alt="Irys" className="irys-logo" />
             <h1>Irys Confessions</h1>
           </div>
           <p className="tagline">Anonymous confessions on the blockchain</p>
@@ -961,7 +961,9 @@ function App() {
           </div>
         ) : confessions.length === 0 ? (
           <div className="empty-state">
-            <Sparkles size={48} />
+            <div className="empty-state-image">
+              <img src="/irys-banner.png" alt="Irys Confessions" className="irys-banner" />
+            </div>
             <h3>No confessions yet</h3>
             <p>Be the first to share your thoughts anonymously on the blockchain!</p>
             <button onClick={() => setShowCompose(true)} className="cta-button">
@@ -1003,6 +1005,9 @@ function App() {
           <div className="network-indicator">
             <div className="status-dot online"></div>
             <span>Connected to Irys {networkInfo.network}</span>
+          </div>
+          <div className="irys-branding">
+            <img src="/irys-eyes.png" alt="Irys" className="irys-eyes" />
           </div>
         </div>
       )}
