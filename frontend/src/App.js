@@ -20,6 +20,8 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
     console.error('ConfessionCard: confession prop is undefined');
     return null;
   }
+  
+  console.log('ConfessionCard received confession:', confession);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(confession.upvotes || 0);
   const [showReplies, setShowReplies] = useState(false);
@@ -262,19 +264,22 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
             <Share2 className="share-icon" />
           </button>
           
-          <a
-            href={`https://devnet.irys.xyz/${confession.tx_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="external-button"
-            title="View on Blockchain"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(`https://devnet.irys.xyz/${confession.tx_id}`, '_blank');
-            }}
-          >
-            <ExternalLink className="external-icon" />
-          </a>
+          {confession.tx_id && (
+            <a
+              href={`https://devnet.irys.xyz/${confession.tx_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="external-button"
+              title="View on Blockchain"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log('Opening blockchain link for tx_id:', confession.tx_id);
+                window.open(`https://devnet.irys.xyz/${confession.tx_id}`, '_blank');
+              }}
+            >
+              <ExternalLink className="external-icon" />
+            </a>
+          )}
         </div>
       </div>
 
@@ -751,7 +756,9 @@ function App() {
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
+            console.log('WebSocket message received:', data);
             if (data.type === 'new_confession') {
+              console.log('New confession data:', data.confession);
               setConfessions(prev => [data.confession, ...prev]);
               showNotification('New confession posted!', 'info');
             }
@@ -814,6 +821,7 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         console.log('Confessions data:', data);
+        console.log('First confession structure:', data.confessions?.[0]);
         setConfessions(data.confessions || []);
       } else {
         console.error('Failed to fetch confessions:', response.status, response.statusText);

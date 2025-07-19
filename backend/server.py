@@ -735,12 +735,15 @@ async def create_confession(
                 "type": "new_confession",
                 "confession": {
                     "id": confession_doc["id"],
+                    "tx_id": confession_doc["tx_id"],
                     "content": confession_doc["content"],
                     "author": confession_doc["author"],
                     "timestamp": confession_doc["timestamp"].isoformat(),
                     "upvotes": confession_doc["upvotes"],
                     "mood": confession_doc["mood"],
-                    "tags": confession_doc["tags"]
+                    "tags": confession_doc["tags"],
+                    "verified": confession_doc["verified"],
+                    "gateway_url": confession_doc["gateway_url"]
                 }
             }))
         
