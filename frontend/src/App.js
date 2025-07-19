@@ -37,11 +37,23 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
     if (!dateString) return 'just now';
     
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'just now';
+      // Handle both ISO string and timestamp formats
+      let date;
+      if (typeof dateString === 'string') {
+        date = new Date(dateString);
+      } else if (typeof dateString === 'number') {
+        date = new Date(dateString);
+      } else {
+        date = new Date(dateString);
+      }
+      
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateString);
+        return 'just now';
+      }
       
       const now = new Date();
-      const diffMs = now - date;
+      const diffMs = now.getTime() - date.getTime();
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffDays = Math.floor(diffHours / 24);
@@ -58,33 +70,66 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
     }
   };
 
-  // Reddit-style vote function
+  // Enhanced vote function with proper user tracking
   const handleVote = async (voteType) => {
     try {
-      const newLiked = voteType === 'upvote';
+      // Get user identifier (wallet address or user ID)
+      const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
+      
+      // Check if user already voted
+      const existingVote = localStorage.getItem(`vote_${confession.tx_id}_${userIdentifier}`);
+      
+      let newVoteType = null;
+      let voteChange = 0;
+      
+      if (existingVote === voteType) {
+        // Remove vote
+        localStorage.removeItem(`vote_${confession.tx_id}_${userIdentifier}`);
+        newVoteType = null;
+        voteChange = voteType === 'upvote' ? -1 : 1;
+      } else {
+        // Add or change vote
+        localStorage.setItem(`vote_${confession.tx_id}_${userIdentifier}`, voteType);
+        newVoteType = voteType;
+        
+        if (existingVote === 'upvote' && voteType === 'downvote') {
+          voteChange = -2; // Remove upvote, add downvote
+        } else if (existingVote === 'downvote' && voteType === 'upvote') {
+          voteChange = 2; // Remove downvote, add upvote
+        } else if (voteType === 'upvote') {
+          voteChange = 1;
+        } else {
+          voteChange = -1;
+        }
+      }
       
       // Add haptic feedback (mobile)
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
       
-      setLiked(newLiked);
-      setLikeCount(prev => {
-        if (liked && voteType === 'upvote') return prev - 1; // Remove upvote
-        if (!liked && voteType === 'downvote') return prev + 1; // Remove downvote
-        if (voteType === 'upvote') return prev + 1; // Add upvote
-        return prev - 1; // Add downvote
-      });
+      // Update local state
+      setLiked(newVoteType === 'upvote');
+      setLikeCount(prev => prev + voteChange);
       
+      // Send vote to backend
       if (onVote) {
         await onVote(confession.tx_id, voteType);
       }
     } catch (error) {
       console.error('Error voting:', error);
-      setLiked(!liked);
-      setLikeCount(prev => liked ? prev + 1 : prev - 1);
+      showNotification('Failed to vote', 'error');
     }
   };
+
+  // Initialize vote state from localStorage
+  useEffect(() => {
+    const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
+    const existingVote = localStorage.getItem(`vote_${confession.tx_id}_${userIdentifier}`);
+    if (existingVote === 'upvote') {
+      setLiked(true);
+    }
+  }, [confession.tx_id, currentUser]);
 
   const handleShare = async () => {
     try {
@@ -149,10 +194,34 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
     setShowReplies(!showReplies);
   };
 
+  // Enhanced bookmark function with wallet-based storage
   const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    showNotification(isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks', 'success');
+    const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
+    const bookmarkKey = `bookmark_${confession.tx_id}_${userIdentifier}`;
+    
+    if (isBookmarked) {
+      localStorage.removeItem(bookmarkKey);
+      setIsBookmarked(false);
+      showNotification('Removed from bookmarks', 'success');
+    } else {
+      localStorage.setItem(bookmarkKey, JSON.stringify({
+        confessionId: confession.tx_id,
+        content: confession.content,
+        timestamp: confession.timestamp,
+        author: confession.author
+      }));
+      setIsBookmarked(true);
+      showNotification('Added to bookmarks', 'success');
+    }
   };
+
+  // Initialize bookmark state from localStorage
+  useEffect(() => {
+    const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
+    const bookmarkKey = `bookmark_${confession.tx_id}_${userIdentifier}`;
+    const bookmarked = localStorage.getItem(bookmarkKey);
+    setIsBookmarked(!!bookmarked);
+  }, [confession.tx_id, currentUser]);
 
   const handleReport = () => {
     setShowOptions(false);
@@ -284,11 +353,6 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
           >
             <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
             <span>Save</span>
-          </button>
-          
-          <button className="action-button">
-            <Award size={18} />
-            <span>Give Award</span>
           </button>
         </div>
 
