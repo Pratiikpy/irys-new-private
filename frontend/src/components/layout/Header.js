@@ -79,11 +79,14 @@ const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
           <div className="logo-container">
             <div className="logo">
               <div className="logo-icon">
-                <Eye size={24} />
+                <img 
+                  src="/new logo.png" 
+                  alt="Irys Logo" 
+                  style={{ width: 36, height: 36, borderRadius: 10, boxShadow: '0 0 16px 2px rgba(0,255,136,0.25)' }} 
+                />
               </div>
               <div className="logo-text-container">
-                <span className="logo-text">Irys</span>
-                <span className="logo-subtitle">Confessions</span>
+                <span className="logo-text" style={{ fontWeight: 700, fontSize: 20, letterSpacing: '0.5px' }}>Confessions</span>
               </div>
             </div>
           </div>
