@@ -12,11 +12,15 @@ import {
   User
 } from 'lucide-react';
 
+const API = process.env.REACT_APP_API_URL || 'https://irys-confession-backend.onrender.com/api';
+
 const PostCard = ({ confession, onVote, onReply, currentUser }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(confession.upvotes || 0);
   const [showReplies, setShowReplies] = useState(false);
   const [replies, setReplies] = useState([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
+  const [repliesError, setRepliesError] = useState(null);
   const [replyContent, setReplyContent] = useState('');
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -158,6 +162,57 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
     }
   };
 
+  // Fetch replies from backend
+  const fetchReplies = async () => {
+    setRepliesLoading(true);
+    setRepliesError(null);
+    try {
+      const response = await fetch(`${API}/confessions/${confession.tx_id}/replies`);
+      if (response.ok) {
+        const data = await response.json();
+        setReplies(data.replies || []);
+      } else {
+        setRepliesError('Failed to load comments');
+      }
+    } catch (error) {
+      setRepliesError('Failed to load comments');
+    } finally {
+      setRepliesLoading(false);
+    }
+  };
+
+  // Show/hide replies and fetch on open
+  const handleShowReplies = () => {
+    setShowReplies((prev) => {
+      const next = !prev;
+      if (next && replies.length === 0) fetchReplies();
+      return next;
+    });
+  };
+
+  // Submit a reply to backend
+  const handleSubmitReply = async () => {
+    if (!replyContent.trim() || isSubmittingReply) return;
+    setIsSubmittingReply(true);
+    try {
+      const response = await fetch(`${API}/confessions/${confession.tx_id}/replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: replyContent.trim() })
+      });
+      if (response.ok) {
+        setReplyContent('');
+        fetchReplies();
+      } else {
+        alert('Failed to post comment');
+      }
+    } catch (error) {
+      alert('Failed to post comment');
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
   return (
     <article className="post-card">
       {/* Vote Sidebar */}
@@ -254,7 +309,7 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
 
         {/* Post Actions */}
         <div className="post-actions">
-          <button className="action-button" onClick={() => setShowReplies(!showReplies)}>
+          <button className="action-button" onClick={handleShowReplies}>
             <MessageCircle size={18} />
             <span>{replies.length || 0} Comments</span>
           </button>
@@ -287,28 +342,35 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
                 />
                 <button 
                   className="reply-submit"
-                  onClick={() => {
-                    // Handle reply submission
-                    setReplyContent('');
-                  }}
+                  onClick={handleSubmitReply}
                   disabled={!replyContent.trim() || isSubmittingReply}
                 >
-                  Reply
+                  {isSubmittingReply ? 'Posting...' : 'Reply'}
                 </button>
               </div>
             </div>
 
-            <div className="replies-list">
-              {replies.map((reply, index) => (
-                <div key={index} className="reply-item">
-                  <div className="reply-header">
-                    <span className="reply-author">u/{reply.author}</span>
-                    <span className="reply-time">{formatTimeAgo(reply.timestamp)}</span>
-                  </div>
-                  <div className="reply-content">{reply.content}</div>
-                </div>
-              ))}
-            </div>
+            {repliesLoading ? (
+              <div className="replies-list">Loading comments...</div>
+            ) : repliesError ? (
+              <div className="replies-list error">{repliesError}</div>
+            ) : (
+              <div className="replies-list">
+                {replies.length === 0 ? (
+                  <div className="reply-item">No comments yet.</div>
+                ) : (
+                  replies.map((reply, index) => (
+                    <div key={index} className="reply-item">
+                      <div className="reply-header">
+                        <span className="reply-author">u/{reply.author}</span>
+                        <span className="reply-time">{formatTimeAgo(reply.timestamp)}</span>
+                      </div>
+                      <div className="reply-content">{reply.content}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
