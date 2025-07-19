@@ -77,14 +77,32 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
     }
   };
 
-  // Initialize vote state from localStorage
+  // Helper to get user identifier
+  const getUserIdentifier = () => currentUser?.wallet_address || currentUser?.id || 'anonymous';
+
+  // Clear vote/bookmark state for previous wallet when wallet changes
   useEffect(() => {
-    const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
+    // On wallet change, clear all vote and bookmark state for this post for previous wallet
+    // (This prevents showing upvoted/bookmarked for wrong wallet)
+    // Optionally, you can clear all vote_*/bookmark_* keys in localStorage, but here we just reset state
+    setLiked(false);
+    setIsBookmarked(false);
+  }, [currentUser?.wallet_address]);
+
+  // Initialize vote state from localStorage for current wallet
+  useEffect(() => {
+    const userIdentifier = getUserIdentifier();
     const existingVote = localStorage.getItem(`vote_${confession.tx_id}_${userIdentifier}`);
-    if (existingVote === 'upvote') {
-      setLiked(true);
-    }
-  }, [confession.tx_id, currentUser]);
+    setLiked(existingVote === 'upvote');
+  }, [confession.tx_id, currentUser?.wallet_address]);
+
+  // Initialize bookmark state for current wallet
+  useEffect(() => {
+    const userIdentifier = getUserIdentifier();
+    const bookmarkKey = `bookmark_${confession.tx_id}_${userIdentifier}`;
+    const bookmarked = localStorage.getItem(bookmarkKey);
+    setIsBookmarked(!!bookmarked);
+  }, [confession.tx_id, currentUser?.wallet_address]);
 
   // Enhanced bookmark function
   const handleBookmark = () => {
@@ -104,14 +122,6 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
       setIsBookmarked(true);
     }
   };
-
-  // Initialize bookmark state
-  useEffect(() => {
-    const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
-    const bookmarkKey = `bookmark_${confession.tx_id}_${userIdentifier}`;
-    const bookmarked = localStorage.getItem(bookmarkKey);
-    setIsBookmarked(!!bookmarked);
-  }, [confession.tx_id, currentUser]);
 
   const handleShare = async () => {
     try {
