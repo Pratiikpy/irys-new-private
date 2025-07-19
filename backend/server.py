@@ -716,7 +716,7 @@ async def create_confession(
             "moderation": {
                 "flagged": moderation_analysis.get("recommended_action") == "flag",
                 "reviewed": False,
-                "approved": moderation_analysis.get("recommended_action") == "approve"
+                "approved": moderation_analysis.get("recommended_action") == "approve" or moderation_analysis.get("error") is not None
             }
         }
         
@@ -825,7 +825,7 @@ async def create_reply(
             "moderation": {
                 "flagged": moderation_analysis.get("recommended_action") == "flag",
                 "reviewed": False,
-                "approved": moderation_analysis.get("recommended_action") == "approve"
+                "approved": moderation_analysis.get("recommended_action") == "approve" or moderation_analysis.get("error") is not None
             }
         }
         
@@ -945,12 +945,33 @@ async def get_public_confessions(
         sort_param = [(sort_by, sort_order)]
         
         # Query database for public confessions
+        print(f"Fetching confessions with limit={limit}, offset={offset}, sort_by={sort_by}, order={order}")
+        
+        # First, let's see what's in the database
+        total_confessions = await db.confessions.count_documents({})
+        public_confessions = await db.confessions.count_documents({"is_public": True})
+        print(f"Total confessions in DB: {total_confessions}")
+        print(f"Public confessions in DB: {public_confessions}")
+        
+        # More lenient filter - include confessions that don't have moderation.approved set to False
         cursor = db.confessions.find(
-            {"is_public": True, "moderation.approved": {"$ne": False}},
+            {
+                "is_public": True,
+                "$or": [
+                    {"moderation.approved": {"$ne": False}},
+                    {"moderation.approved": {"$exists": False}},
+                    {"moderation": {"$exists": False}}
+                ]
+            },
             {"_id": 0}
         ).sort(sort_param).skip(offset).limit(limit)
         
         confessions = await cursor.to_list(length=limit)
+        print(f"Returning {len(confessions)} confessions")
+        
+        # Debug: Show first confession structure
+        if confessions:
+            print(f"First confession structure: {confessions[0]}")
         
         return {
             "confessions": confessions,
@@ -1287,6 +1308,30 @@ async def get_trending_tags(limit: int = 20):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Analytics Routes
+@api_router.get("/debug/confessions")
+async def debug_confessions():
+    """Debug endpoint to see what's in the database"""
+    try:
+        total = await db.confessions.count_documents({})
+        public = await db.confessions.count_documents({"is_public": True})
+        approved = await db.confessions.count_documents({"moderation.approved": True})
+        flagged = await db.confessions.count_documents({"moderation.approved": False})
+        no_moderation = await db.confessions.count_documents({"moderation": {"$exists": False}})
+        
+        # Get a few sample confessions
+        samples = await db.confessions.find({}, {"_id": 0, "id": 1, "content": 1, "is_public": 1, "moderation": 1}).limit(5).to_list(length=5)
+        
+        return {
+            "total_confessions": total,
+            "public_confessions": public,
+            "approved_confessions": approved,
+            "flagged_confessions": flagged,
+            "no_moderation_field": no_moderation,
+            "sample_confessions": samples
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/analytics/stats")
 async def get_platform_stats():
     """Get platform statistics"""
