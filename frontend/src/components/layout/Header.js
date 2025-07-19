@@ -80,7 +80,7 @@ const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
             <div className="logo">
               <div className="logo-icon">
                 <img 
-                  src="/new logo.png" 
+                  src="/logo.png" 
                   alt="Irys Logo" 
                   style={{ width: 36, height: 36, borderRadius: 10, boxShadow: '0 0 16px 2px rgba(0,255,136,0.25)' }} 
                 />
