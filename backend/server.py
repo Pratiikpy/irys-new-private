@@ -26,6 +26,7 @@ import time
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from pymongo.errors import DuplicateKeyError
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -1068,7 +1069,11 @@ async def vote_confession(
                 "vote_type": vote_request.vote_type,
                 "timestamp": datetime.utcnow()
             }
-            await db.votes.insert_one(vote_doc)
+            try:
+                await db.votes.insert_one(vote_doc)
+            except DuplicateKeyError as e:
+                logging.error(f"Duplicate vote error: {e}")
+                raise HTTPException(status_code=400, detail="You have already voted on this confession.")
             # Update confession vote count
             update_field = "upvotes" if vote_request.vote_type == "upvote" else "downvotes"
             await db.confessions.update_one(
@@ -1085,7 +1090,10 @@ async def vote_confession(
 
         return {"status": "success", "message": f"{vote_request.vote_type} recorded"}
 
+    except HTTPException as e:
+        raise e
     except Exception as e:
+        logging.error(f"Vote error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/replies/{reply_id}/vote")
