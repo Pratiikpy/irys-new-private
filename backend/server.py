@@ -65,7 +65,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 api_router = APIRouter(prefix="/api")
 
 # Configure CORS properly
-origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+origins = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,https://irys-confession-frontend.onrender.com').split(',')
 
 app.add_middleware(
     CORSMiddleware,
