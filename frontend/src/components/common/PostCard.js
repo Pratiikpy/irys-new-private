@@ -134,9 +134,19 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
 
   const handleShare = async () => {
     try {
-      const shareUrl = `${window.location.origin}/confession/${confession.tx_id}`;
+      // Share the blockchain URL instead of frontend route
+      const shareUrl = `https://gateway.irys.xyz/${confession.tx_id}`;
       await navigator.clipboard.writeText(shareUrl);
+      
       // Show success notification
+      const notification = document.createElement('div');
+      notification.className = 'notification success';
+      notification.textContent = 'Confession URL copied to clipboard!';
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
     } catch (error) {
       console.error('Error sharing:', error);
     }

@@ -3,6 +3,7 @@ import { Plus, X, Search, Filter } from 'lucide-react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Header from './components/layout/Header';
 import PostCard from './components/common/PostCard';
+import MetaMaskLogin from './components/auth/MetaMaskLogin';
 
 // API configuration - Use production URL if available
 const API = process.env.REACT_APP_API_URL || 'https://irys-confession-backend.onrender.com/api';
@@ -44,7 +45,8 @@ const ComposeModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
         body: JSON.stringify({
           content: content.trim(),
           tags: tags,
-          is_public: isPublic
+          is_public: isPublic,
+          author: currentUser?.username || 'anonymous'
         })
       });
 
@@ -214,6 +216,7 @@ function App() {
   const [confessions, setConfessions] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [showComposeModal, setShowComposeModal] = useState(false);
+  const [showMetaMaskLogin, setShowMetaMaskLogin] = useState(false);
   const [activeFilter, setActiveFilter] = useState('latest');
   const [isLoading, setIsLoading] = useState(true);
   const [ws, setWs] = useState(null);
@@ -339,7 +342,13 @@ function App() {
 
   // Handle login
   const handleLogin = () => {
-    showNotification('Login feature coming soon!', 'info');
+    setShowMetaMaskLogin(true);
+  };
+
+  // Handle MetaMask login success
+  const handleMetaMaskLogin = (user) => {
+    setCurrentUser(user);
+    showNotification(`Welcome, ${user.username}!`, 'success');
   };
 
   // Handle logout
@@ -419,6 +428,12 @@ function App() {
         onClose={() => setShowComposeModal(false)}
         onSubmit={handleNewConfession}
         currentUser={currentUser}
+      />
+
+      <MetaMaskLogin
+        isOpen={showMetaMaskLogin}
+        onClose={() => setShowMetaMaskLogin(false)}
+        onLogin={handleMetaMaskLogin}
       />
 
       {networkInfo && (
