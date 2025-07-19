@@ -4,9 +4,9 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Header from './components/layout/Header';
 import PostCard from './components/common/PostCard';
 
-// API configuration
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws';
+// API configuration - Use production URL if available
+const API = process.env.REACT_APP_API_URL || 'https://irys-confession-backend.onrender.com';
+const WS_URL = process.env.REACT_APP_WS_URL || 'wss://irys-confession-backend.onrender.com/ws';
 
 // Notification system
 const showNotification = (message, type = 'info') => {
@@ -48,7 +48,7 @@ const ComposeModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
         })
       });
 
-      if (response.ok) {
+      if (response && response.ok) {
         const newConfession = await response.json();
         onSubmit(newConfession);
         setContent('');
@@ -218,6 +218,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [ws, setWs] = useState(null);
   const [networkInfo, setNetworkInfo] = useState(null);
+  const [connectionError, setConnectionError] = useState(false);
 
   // WebSocket connection
   useEffect(() => {
@@ -227,6 +228,7 @@ function App() {
         
         websocket.onopen = () => {
           console.log('WebSocket connected');
+          setConnectionError(false);
         };
         
         websocket.onmessage = (event) => {
@@ -243,16 +245,19 @@ function App() {
         
         websocket.onclose = () => {
           console.log('WebSocket disconnected');
+          setConnectionError(true);
           setTimeout(connectWebSocket, 3000);
         };
         
         websocket.onerror = (error) => {
           console.error('WebSocket error:', error);
+          setConnectionError(true);
         };
         
         setWs(websocket);
       } catch (error) {
         console.error('Error connecting to WebSocket:', error);
+        setConnectionError(true);
       }
     };
 
@@ -268,7 +273,7 @@ function App() {
   const fetchNetworkInfo = async () => {
     try {
       const response = await fetch(`${API}/network-info`);
-      if (response.ok) {
+      if (response && response.ok) {
         const data = await response.json();
         setNetworkInfo(data);
       }
@@ -282,14 +287,16 @@ function App() {
     try {
       setIsLoading(true);
       const response = await fetch(`${API}/confessions?filter=${activeFilter}`);
-      if (response.ok) {
+      if (response && response.ok) {
         const data = await response.json();
         setConfessions(data.confessions || []);
+        setConnectionError(false);
       } else {
         throw new Error('Failed to fetch confessions');
       }
     } catch (error) {
       console.error('Error fetching confessions:', error);
+      setConnectionError(true);
       showNotification('Failed to load confessions', 'error');
     } finally {
       setIsLoading(false);
@@ -298,8 +305,10 @@ function App() {
 
   // Handle new confession
   const handleNewConfession = (newConfession) => {
-    setConfessions(prev => [newConfession, ...prev]);
-    showNotification('Confession posted successfully!', 'success');
+    if (newConfession && newConfession.tx_id) {
+      setConfessions(prev => [newConfession, ...prev]);
+      showNotification('Confession posted successfully!', 'success');
+    }
   };
 
   // Handle vote
@@ -314,7 +323,7 @@ function App() {
         body: JSON.stringify({ vote_type: voteType })
       });
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error('Failed to vote');
       }
     } catch (error) {
@@ -330,7 +339,6 @@ function App() {
 
   // Handle login
   const handleLogin = () => {
-    // Implement login logic
     showNotification('Login feature coming soon!', 'info');
   };
 
@@ -365,6 +373,15 @@ function App() {
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
         />
+
+        {connectionError && (
+          <div className="connection-error">
+            <p>⚠️ Unable to connect to backend. Please check if the server is running.</p>
+            <button className="btn btn-secondary" onClick={fetchConfessions}>
+              Retry Connection
+            </button>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="loading">

@@ -10,7 +10,8 @@ import {
   User,
   LogOut,
   Bookmark,
-  Shield
+  Shield,
+  Eye
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -77,8 +78,13 @@ const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
         <div className="header-left">
           <div className="logo-container">
             <div className="logo">
-              <span className="logo-text">Irys</span>
-              <span className="logo-subtitle">Confessions</span>
+              <div className="logo-icon">
+                <Eye size={24} />
+              </div>
+              <div className="logo-text-container">
+                <span className="logo-text">Irys</span>
+                <span className="logo-subtitle">Confessions</span>
+              </div>
             </div>
           </div>
         </div>
