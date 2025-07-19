@@ -8,9 +8,9 @@ import {
 import AuthModal from './components/auth/AuthModal';
 import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://irys-confession-backend.onrender.com';
 const API = `${BACKEND_URL}/api`;
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws';
+const WS_URL = process.env.REACT_APP_BACKEND_URL ? process.env.REACT_APP_BACKEND_URL.replace('http', 'ws') : 'wss://irys-confession-backend.onrender.com';
 
 // Professional Confession Card Component
 const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
@@ -696,7 +696,7 @@ function App() {
   useEffect(() => {
     const connectWebSocket = () => {
       try {
-        const ws = new WebSocket(`${WS_URL}/anonymous`);
+        const ws = new WebSocket(`${WS_URL}/ws/anonymous`);
         
         ws.onopen = () => {
           console.log('WebSocket connected');
