@@ -28,19 +28,28 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
+    if (!dateString) return 'just now';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'just now';
+      
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMinutes < 1) return 'just now';
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return 'yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+      if (diffMinutes < 1) return 'just now';
+      if (diffMinutes < 60) return `${diffMinutes}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays === 1) return 'yesterday';
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return 'just now';
+    }
   };
 
   // Enhanced vote function with cool effects
@@ -254,11 +263,15 @@ const ConfessionCard = ({ confession, onVote, onReply, currentUser }) => {
           </button>
           
           <a
-            href={confession.gateway_url}
+            href={`https://devnet.irys.xyz/${confession.tx_id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="external-button"
             title="View on Blockchain"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://devnet.irys.xyz/${confession.tx_id}`, '_blank');
+            }}
           >
             <ExternalLink className="external-icon" />
           </a>
@@ -524,10 +537,31 @@ const ComposeModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
 const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
   // Defensive checks to prevent React error #130
   if (!onLogin || !onLogout || !onSettings) {
-    console.error('Header: Missing required callback props');
+    console.error('Header: Missing required callback props', { onLogin, onLogout, onSettings });
     return null;
   }
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const handleUserMenuClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('User menu clicked, current state:', showUserMenu);
+    setShowUserMenu(!showUserMenu);
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserMenu && !event.target.closest('.user-menu')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   return (
     <header className="header">
@@ -550,7 +584,7 @@ const Header = ({ currentUser, onLogin, onLogout, onSettings }) => {
               <div className="user-menu">
                 <button 
                   className="user-btn"
-                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  onClick={handleUserMenuClick}
                 >
                   <div className="user-avatar">
                     {currentUser.isWalletUser ? (
@@ -900,16 +934,19 @@ function App() {
 
   // Handle login/logout
   const handleLogin = () => {
+    console.log('Login button clicked');
     setShowAuth(true);
   };
 
   const handleLogout = () => {
+    console.log('Logout button clicked');
     localStorage.removeItem('user');
     setCurrentUser(null);
     showNotification('Logged out successfully', 'success');
   };
 
   const handleSettings = () => {
+    console.log('Settings button clicked');
     showNotification('Settings feature coming soon!', 'info');
   };
 

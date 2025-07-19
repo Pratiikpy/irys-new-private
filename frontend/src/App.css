@@ -225,16 +225,8 @@ body {
   box-shadow: var(--shadow-lg);
   min-width: 200px;
   z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all var(--transition-fast);
-}
-
-.user-dropdown.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+  margin-top: 8px;
+  padding: 8px 0;
 }
 
 .dropdown-item {
