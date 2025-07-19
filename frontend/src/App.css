@@ -1,70 +1,46 @@
-/* Modern Reddit-Style Design System for Irys Confession Board */
+/* Reddit-Style Design System for Irys Confession Board */
 
+/* CSS Variables - Applied by ThemeContext */
 :root {
-  /* Dark Theme (Default) */
+  /* These will be overridden by the theme system */
   --bg-primary: #0a0a0b;
   --bg-secondary: #1a1a1b;
   --bg-tertiary: #272729;
   --bg-hover: #343536;
+  --bg-card: #1e1e1f;
+  --bg-input: #2d2d2e;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
   
-  /* Text Colors */
   --text-primary: #d7dadc;
   --text-secondary: #818384;
   --text-muted: #565758;
+  --text-link: #4fbcff;
   
-  /* Accent Colors */
-  --accent-primary: #ff4500; /* Reddit Orange */
-  --accent-secondary: #0079d3; /* Reddit Blue */
+  --accent-primary: #ff4500;
+  --accent-secondary: #0079d3;
   --accent-success: #46d160;
   --accent-warning: #ffd635;
   --accent-danger: #ea0027;
+  --accent-upvote: #ff8b60;
+  --accent-downvote: #9494ff;
   
-  /* Irys Brand Colors */
   --irys-green: #00ff88;
-  --irys-dark: #003d1f;
+  --irys-blue: #00d1ff;
   --irys-glow: rgba(0, 255, 136, 0.4);
   
-  /* Gradients */
-  --gradient-brand: linear-gradient(135deg, #00ff88 0%, #00d1ff 100%);
-  --gradient-dark: linear-gradient(180deg, #1a1a1b 0%, #0a0a0b 100%);
-  --gradient-card: linear-gradient(145deg, #1e1e1f, #161617);
-  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  --border-primary: #343536;
+  --border-secondary: #4a4a4b;
+  --border-glass: rgba(255, 255, 255, 0.1);
   
-  /* Effects */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.6);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.8);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.9);
-  --shadow-glow: 0 0 20px var(--irys-glow);
-  --shadow-neon: 0 0 30px rgba(0, 255, 136, 0.6);
-  
-  /* Borders */
-  --border-color: #343536;
-  --border-hover: #4a4a4b;
-  --border-glass: rgba(255, 255, 255, 0.1);
+  --shadow-glow: 0 0 20px rgba(0, 255, 136, 0.4);
   
   /* Animations */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Light Theme */
-[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f6f7f8;
-  --bg-tertiary: #e4e6e7;
-  --bg-hover: #d7dadc;
-  
-  --text-primary: #1c1c1c;
-  --text-secondary: #576069;
-  --text-muted: #7c7f82;
-  
-  --border-color: #ccc;
-  --border-hover: #999;
-  
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
 }
 
 /* Global Styles */
@@ -116,103 +92,157 @@ body {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(0, 209, 255, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0, 209, 255, 0.05) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
 }
 
-/* Header - Modern Glass Effect */
+/* Header Styles */
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(26, 26, 27, 0.8);
+  background: rgba(26, 26, 27, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-glass);
+  transition: all var(--transition-base);
+}
+
+.header-scrolled {
+  box-shadow: var(--shadow-md);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 0 20px;
   height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: var(--shadow-md);
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
 }
 
 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-text {
   font-size: 24px;
   font-weight: 800;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-decoration: none;
+  line-height: 1;
+}
+
+.logo-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-top: -2px;
+}
+
+.header-center {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 40px;
+}
+
+.search-container {
+  width: 100%;
+}
+
+.search-input-wrapper {
   position: relative;
+  width: 100%;
 }
 
-.logo::after {
-  content: '';
+.search-icon {
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--gradient-brand);
-  border-radius: 1px;
-  transform: scaleX(0);
-  transition: transform var(--transition-base);
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
 }
 
-.logo:hover::after {
-  transform: scaleX(1);
+.search-input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all var(--transition-base);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--irys-green);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-/* User Menu - Glass Effect */
-.user-menu {
+/* Theme Switcher */
+.theme-switcher {
   position: relative;
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--gradient-brand);
+.theme-button {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-base);
-  color: white;
-  font-weight: 700;
-  font-size: 14px;
-  box-shadow: var(--shadow-sm);
-  border: 2px solid transparent;
 }
 
-.user-avatar:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-glow);
-  border-color: var(--irys-green);
+.theme-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
 }
 
-.user-dropdown {
+.theme-dropdown {
   position: absolute;
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background: rgba(26, 26, 27, 0.95);
-  backdrop-filter: blur(20px);
+  background: var(--bg-card);
   border: 1px solid var(--border-glass);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
@@ -222,39 +252,202 @@ body {
   animation: slideDown var(--transition-base);
 }
 
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.theme-option:hover {
+  background: var(--bg-hover);
+}
+
+.theme-option.active {
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--irys-green);
+}
+
+.theme-check {
+  position: absolute;
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  background: var(--irys-green);
+  border-radius: 50%;
+}
+
+/* Header Buttons */
+.header-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.header-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
+}
+
+/* User Menu */
+.user-menu {
+  position: relative;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 20px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.user-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-secondary);
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  min-width: 240px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown var(--transition-base);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.user-avatar-large {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.username {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.user-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-glass);
+  margin: 8px 0;
+}
+
 .dropdown-item {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 12px 16px;
+  background: none;
+  border: none;
   color: var(--text-primary);
-  text-decoration: none;
-  transition: all var(--transition-fast);
   cursor: pointer;
+  transition: all var(--transition-fast);
   font-size: 14px;
-  border-bottom: 1px solid var(--border-glass);
 }
 
 .dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateX(4px);
+  background: var(--bg-hover);
 }
 
-.dropdown-item:last-child {
-  border-bottom: none;
+.login-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-weight: 600;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow);
 }
 
 /* Main Content */
 .main-content {
-  max-width: 680px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 24px 20px;
 }
 
-/* Filter Bar - Modern */
+/* Filter Bar */
 .filter-bar {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 24px;
   padding: 16px 0;
   border-bottom: 1px solid var(--border-glass);
@@ -263,9 +456,8 @@ body {
 
 .filter-button {
   padding: 8px 16px;
-  border: none;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-glass);
   color: var(--text-secondary);
   border-radius: 20px;
   cursor: pointer;
@@ -273,94 +465,48 @@ body {
   white-space: nowrap;
   font-size: 14px;
   font-weight: 500;
-  border: 1px solid transparent;
 }
 
 .filter-button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
-  transform: translateY(-1px);
+  border-color: var(--border-secondary);
 }
 
 .filter-button.active {
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   color: white;
-  box-shadow: var(--shadow-glow);
   border-color: var(--irys-green);
+  box-shadow: var(--shadow-glow);
 }
 
-/* Modern Confession Cards */
-.reddit-post {
-  background: rgba(26, 26, 27, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
+/* Post Card */
+.post-card {
+  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
   margin-bottom: 16px;
   transition: all var(--transition-base);
-  position: relative;
   overflow: hidden;
-  display: flex;
   box-shadow: var(--shadow-sm);
 }
 
-.reddit-post::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-brand);
-  opacity: 0;
-  transition: opacity var(--transition-base);
+.post-card:hover {
+  border-color: var(--border-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.reddit-post:hover {
-  border-color: var(--irys-green);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
-}
-
-.reddit-post:hover::before {
-  opacity: 1;
-}
-
-.reddit-post.new {
-  animation: slideInUp var(--transition-slow);
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Vote Sidebar - Modern */
+/* Vote Sidebar */
 .vote-sidebar {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 12px 8px;
-  background: rgba(39, 39, 41, 0.5);
-  backdrop-filter: blur(10px);
+  background: var(--bg-tertiary);
   min-width: 48px;
-  border-right: 1px solid var(--border-glass);
+  border-right: 1px solid var(--border-primary);
 }
 
 .vote-button {
@@ -376,39 +522,19 @@ body {
   justify-content: center;
   width: 28px;
   height: 28px;
-  position: relative;
-  overflow: hidden;
-}
-
-.vote-button::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 69, 0, 0.2);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.3s, height 0.3s;
-}
-
-.vote-button:hover::before {
-  width: 100%;
-  height: 100%;
 }
 
 .vote-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
   transform: scale(1.1);
 }
 
 .vote-button.upvote:hover {
-  color: var(--accent-primary);
+  color: var(--accent-upvote);
 }
 
 .vote-button.downvote:hover {
-  color: var(--accent-secondary);
+  color: var(--accent-downvote);
 }
 
 .vote-button.voted {
@@ -434,13 +560,16 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Post Content - Modern */
+.vote-count.voted-up {
+  color: var(--accent-upvote);
+}
+
+/* Post Content */
 .post-content {
   flex: 1;
   padding: 16px 20px;
 }
 
-/* Post Header - Modern */
 .post-header {
   display: flex;
   justify-content: space-between;
@@ -458,17 +587,23 @@ body {
 .subreddit {
   color: var(--text-primary);
   font-weight: 600;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .posted-by {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--text-secondary);
 }
 
 .post-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--text-muted);
 }
 
@@ -487,7 +622,7 @@ body {
 }
 
 .options-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
   color: var(--text-primary);
   transform: scale(1.1);
 }
@@ -496,8 +631,7 @@ body {
   position: absolute;
   top: 100%;
   right: 0;
-  background: rgba(26, 26, 27, 0.95);
-  backdrop-filter: blur(20px);
+  background: var(--bg-card);
   border: 1px solid var(--border-glass);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
@@ -511,28 +645,26 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 12px 16px;
   background: none;
   border: none;
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
-  width: 100%;
-  text-align: left;
   font-size: 14px;
   border-bottom: 1px solid var(--border-glass);
 }
 
 .option-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateX(4px);
+  background: var(--bg-hover);
 }
 
 .option-item:last-child {
   border-bottom: none;
 }
 
-/* Post Body - Modern */
+/* Post Body */
 .post-body {
   margin-bottom: 12px;
 }
@@ -542,7 +674,7 @@ body {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 8px;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -580,22 +712,7 @@ body {
   transform: scale(1.05);
 }
 
-.mood-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: var(--text-secondary);
-  border-radius: 12px;
-  font-size: 12px;
-  border: 1px solid var(--border-glass);
-  width: fit-content;
-  margin-bottom: 12px;
-}
-
-/* Blockchain Badge - Modern */
+/* Blockchain Badge */
 .blockchain-badge {
   display: flex;
   align-items: center;
@@ -625,11 +742,11 @@ body {
   transition: color var(--transition-base);
 }
 
-.blockchain-link:hover {
+.blockchain-badge:hover .blockchain-link {
   color: var(--text-primary);
 }
 
-/* Post Actions - Modern */
+/* Post Actions */
 .post-actions {
   display: flex;
   align-items: center;
@@ -661,7 +778,11 @@ body {
   border-color: var(--border-glass);
 }
 
-/* Reply Section - Modern */
+.action-button.saved {
+  color: var(--accent-warning);
+}
+
+/* Reply Section */
 .replies-section {
   margin-top: 12px;
   padding-top: 12px;
@@ -682,8 +803,7 @@ body {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--border-glass);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: var(--bg-input);
   color: var(--text-primary);
   border-radius: 12px;
   font-size: 14px;
@@ -697,13 +817,12 @@ body {
   outline: none;
   border-color: var(--irys-green);
   box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .reply-submit {
   align-self: flex-end;
   padding: 8px 16px;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   color: white;
   border: none;
   border-radius: 20px;
@@ -726,7 +845,7 @@ body {
   box-shadow: none;
 }
 
-/* Replies List - Modern */
+/* Replies List */
 .replies-list {
   display: flex;
   flex-direction: column;
@@ -772,39 +891,14 @@ body {
   margin-bottom: 8px;
 }
 
-.reply-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.reply-action {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all var(--transition-fast);
-  font-size: 11px;
-}
-
-.reply-action:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
-}
-
-/* Floating Action Button - Modern */
+/* Floating Action Button */
 .fab {
   position: fixed;
   bottom: 24px;
   right: 24px;
   width: 60px;
   height: 60px;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   border: none;
   border-radius: 50%;
   color: white;
@@ -821,17 +915,17 @@ body {
 
 .fab:hover {
   transform: scale(1.1) rotate(90deg);
-  box-shadow: var(--shadow-lg), var(--shadow-neon);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 255, 136, 0.6);
 }
 
-/* Compose Modal - Modern Glass */
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--bg-overlay);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -841,7 +935,7 @@ body {
 }
 
 .modal {
-  background: rgba(26, 26, 27, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 24px;
@@ -875,7 +969,7 @@ body {
 .irys-logo {
   width: 40px;
   height: 40px;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -898,12 +992,12 @@ body {
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
   color: var(--text-primary);
   transform: scale(1.1);
 }
 
-/* Form Elements - Modern */
+/* Form Elements */
 .form-group {
   margin-bottom: 20px;
 }
@@ -921,8 +1015,7 @@ body {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid var(--border-glass);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: var(--bg-input);
   color: var(--text-primary);
   border-radius: 12px;
   font-size: 14px;
@@ -936,22 +1029,20 @@ body {
   outline: none;
   border-color: var(--irys-green);
   box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .form-textarea {
   min-height: 120px;
 }
 
-/* Tags Input - Modern */
+/* Tags Input */
 .tags-input {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px;
   border: 1px solid var(--border-glass);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  background: var(--bg-input);
   border-radius: 12px;
   min-height: 50px;
 }
@@ -974,7 +1065,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 4px 12px;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   color: white;
   border-radius: 12px;
   font-size: 12px;
@@ -998,7 +1089,7 @@ body {
   transform: scale(1.2);
 }
 
-/* Buttons - Modern */
+/* Buttons */
 .btn {
   padding: 12px 24px;
   border: none;
@@ -1014,7 +1105,7 @@ body {
 }
 
 .btn-primary {
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, var(--irys-green) 0%, var(--irys-blue) 100%);
   color: white;
 }
 
@@ -1035,7 +1126,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* Notifications - Modern */
+/* Notifications */
 .notification {
   position: fixed;
   top: 20px;
@@ -1080,6 +1171,17 @@ body {
 @keyframes slideUp {
   from {
     transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
     opacity: 0;
   }
   to {
@@ -1185,18 +1287,26 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .header {
+  .header-container {
     padding: 0 16px;
     height: 56px;
+  }
+  
+  .logo-text {
+    font-size: 20px;
+  }
+  
+  .header-center {
+    margin: 0 16px;
   }
   
   .main-content {
     padding: 16px;
   }
   
-  .reddit-post {
+  .post-card {
     margin-bottom: 12px;
-    border-radius: 12px;
+    border-radius: 8px;
   }
   
   .vote-sidebar {
@@ -1227,5 +1337,38 @@ body {
     right: 16px;
     left: 16px;
     max-width: none;
+  }
+  
+  .post-actions {
+    gap: 8px;
+  }
+  
+  .action-button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-right {
+    gap: 8px;
+  }
+  
+  .theme-button {
+    padding: 6px 8px;
+  }
+  
+  .user-button {
+    padding: 4px 8px;
+  }
+  
+  .post-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .post-actions {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
