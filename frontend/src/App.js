@@ -792,6 +792,12 @@ function App() {
 
   // Handle new confession with celebration effects
   const handleNewConfession = (newConfession) => {
+    if (!newConfession || !newConfession.tx_id) {
+      console.error('Invalid confession data:', newConfession);
+      showNotification('Error: Invalid confession data', 'error');
+      return;
+    }
+
     // Add the new confession with animation
     const confessionWithAnimation = {
       ...newConfession,
