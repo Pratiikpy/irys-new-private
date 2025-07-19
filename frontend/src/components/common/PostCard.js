@@ -63,14 +63,14 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
 
   // Enhanced vote function with proper user tracking
   const handleVote = async (voteType) => {
-    if (!currentUser || !currentUser.walletAddress) {
+    if (!currentUser || !currentUser.wallet_address) {
       alert('Connect your wallet to vote!');
       return;
     }
     try {
       // Send vote to backend with wallet address
       if (onVote) {
-        await onVote(confession.tx_id, voteType, currentUser.walletAddress);
+        await onVote(confession.tx_id, voteType, currentUser.wallet_address);
       }
     } catch (error) {
       console.error('Error voting:', error);

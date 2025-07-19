@@ -214,7 +214,11 @@ const Fab = ({ onClick }) => (
 // Main App Component
 function App() {
   const [confessions, setConfessions] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    // Initialize currentUser from localStorage if available
+    const savedUser = localStorage.getItem('currentUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [showMetaMaskLogin, setShowMetaMaskLogin] = useState(false);
   const [activeFilter, setActiveFilter] = useState('latest');
@@ -316,7 +320,7 @@ function App() {
 
   // Handle vote
   const handleVote = async (txId, voteType, walletAddress) => {
-    if (!currentUser || !currentUser.walletAddress) {
+    if (!currentUser || !currentUser.wallet_address) {
       showNotification('Connect your wallet to vote!', 'error');
       return;
     }
@@ -358,6 +362,7 @@ function App() {
   // Handle logout
   const handleLogout = () => {
     setCurrentUser(null);
+    localStorage.removeItem('currentUser');
     showNotification('Logged out successfully', 'success');
   };
 
