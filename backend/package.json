@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@irys/upload": "^0.0.15",
+    "@irys/upload-ethereum": "^0.0.16",
+    "dotenv": "^17.2.0",
+    "got": "^14.4.7"
+  }
+}

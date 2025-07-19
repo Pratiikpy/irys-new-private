@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: irys-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: irys_confession_board
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - irys-network
+
+  # Backend API
+  backend:
+    build: ./backend
+    container_name: irys-backend
+    restart: unless-stopped
+    environment:
+      - MONGO_URL=mongodb://admin:password123@mongodb:27017
+      - DB_NAME=irys_confession_board
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - IRYS_PRIVATE_KEY=${IRYS_PRIVATE_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - irys-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React App
+  frontend:
+    build: ./frontend
+    container_name: irys-frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8000
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - REACT_APP_WS_URL=ws://localhost:8000/ws
+      - REACT_APP_ENVIRONMENT=production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - irys-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  irys-network:
+    driver: bridge 

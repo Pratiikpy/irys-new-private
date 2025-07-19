@@ -1,0 +1,51 @@
+services:
+  - name: irys-confession-backend
+    type: web
+    env: python
+    plan: free
+    buildCommand: cd backend && npm install && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://irys-confession-frontend.onrender.com
+      - key: DB_NAME
+        value: irys_confessions_prod
+      - key: ENVIRONMENT
+        value: production
+      - key: GATEWAY_URL
+        value: https://devnet.irys.xyz
+      - key: IRYS_NETWORK
+        value: devnet
+      - key: IRYS_PRIVATE_KEY
+        sync: false
+      - key: IRYS_RPC_URL
+        value: https://rpc.devnet.irys.xyz/v1
+      - key: MONGO_URL
+        sync: false
+      - key: CLAUDE_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+
+  - name: irys-confession-frontend
+    type: web
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    envVars:
+      - key: DISABLE_HOT_RELOAD
+        value: true
+      - key: GENERATE_SOURCEMAP
+        value: false
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=8192
+      - key: REACT_APP_BACKEND_URL
+        value: https://irys-confession-backend.onrender.com
+      - key: REACT_APP_GATEWAY_URL
+        value: https://devnet.irys.xyz
+      - key: REACT_APP_IRYS_RPC_URL
+        value: https://rpc.devnet.irys.xyz/v1
+      - key: REACT_APP_PRIVATE_KEY
+        sync: false 
