@@ -493,7 +493,7 @@ const ComposeModal = ({ isOpen, onClose, onSubmit, currentUser }) => {
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">
-            <img src="/irys-logo.png" alt="Irys" className="modal-logo" />
+            <div className="irys-logo">IRYS</div>
             New Confession
           </h2>
           <button onClick={onClose} className="modal-close">
