@@ -23,16 +23,11 @@ Your Irys Confession Board is now configured for **Render Blueprint** deployment
 
 ## 🚀 **Step-by-Step Blueprint Deployment**
 
-### **Step 1: Push to GitHub**
-```bash
-# Initialize git (if not already done)
-git init
-git add .
-git commit -m "Initial commit - Irys Confession Board"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/irys-confession-board.git
-git push -u origin main
-```
+### **Step 1: Repository Ready**
+✅ **Your repository is already uploaded to GitHub:**
+- **Repository**: https://github.com/Pratiikpy/irys-new-private.git
+- **Status**: All files committed and pushed
+- **Ready for Blueprint deployment**
 
 ### **Step 2: Deploy with Blueprint**
 
@@ -41,7 +36,7 @@ git push -u origin main
    - Click **"New +"** → **"Blueprint"**
 
 2. **Connect GitHub Repository**
-   - Select your repository: `irys-confession-board`
+   - Select your repository: `Pratiikpy/irys-new-private`
    - Click **"Connect"**
 
 3. **Configure Services**
