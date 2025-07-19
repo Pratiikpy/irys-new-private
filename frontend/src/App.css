@@ -59,7 +59,7 @@ body {
 }
 
 body, * {
-  cursor: url('/cursor.png'), pointer;
+  cursor: pointer;
 }
 
 /* Custom Scrollbar */
