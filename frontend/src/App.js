@@ -319,11 +319,7 @@ function App() {
   };
 
   // Handle vote
-  const handleVote = async (txId, voteType, walletAddress) => {
-    if (!currentUser || !currentUser.wallet_address) {
-      showNotification('Connect your wallet to vote!', 'error');
-      return;
-    }
+  const handleVote = async (txId, voteType, userIdentifier) => {
     try {
       const response = await fetch(`${API}/confessions/${txId}/vote`, {
         method: 'POST',
@@ -331,15 +327,33 @@ function App() {
           'Content-Type': 'application/json',
           ...(currentUser?.token && { 'Authorization': `Bearer ${currentUser.token}` })
         },
-        body: JSON.stringify({ vote_type: voteType, wallet_address: walletAddress })
+        body: JSON.stringify({ 
+          vote_type: voteType, 
+          wallet_address: userIdentifier 
+        })
       });
 
       if (!response || !response.ok) {
-        throw new Error('Failed to vote');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to vote');
       }
+      
+      // Update the confession in the list with new vote count
+      setConfessions(prev => prev.map(confession => {
+        if (confession.tx_id === txId) {
+          const voteChange = voteType === 'upvote' ? 1 : -1;
+          return {
+            ...confession,
+            upvotes: Math.max(0, (confession.upvotes || 0) + voteChange)
+          };
+        }
+        return confession;
+      }));
+      
+      showNotification(`${voteType} recorded!`, 'success');
     } catch (error) {
       console.error('Error voting:', error);
-      showNotification('Failed to vote', 'error');
+      showNotification(error.message || 'Failed to vote', 'error');
     }
   };
 

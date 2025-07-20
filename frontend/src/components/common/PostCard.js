@@ -52,21 +52,20 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
 
   // Enhanced vote function with proper user tracking
   const handleVote = async (voteType) => {
-    if (!currentUser || !currentUser.wallet_address) {
-      alert('Connect your wallet to vote!');
-      return;
-    }
+    // Allow voting for logged-in users (with or without wallet) and anonymous users
+    const userIdentifier = currentUser?.wallet_address || currentUser?.id || 'anonymous';
+    
     try {
-      // Send vote to backend with wallet address
+      // Send vote to backend
       if (onVote) {
-        await onVote(confession.tx_id, voteType, currentUser.wallet_address);
+        await onVote(confession.tx_id, voteType, userIdentifier);
         // Update localStorage for this vote
-        const userIdentifier = currentUser.wallet_address;
         localStorage.setItem(`vote_${confession.tx_id}_${userIdentifier}`, voteType);
         setLiked(voteType === 'upvote');
       }
     } catch (error) {
       console.error('Error voting:', error);
+      alert('Failed to vote. Please try again.');
     }
   };
 
@@ -180,14 +179,31 @@ const PostCard = ({ confession, onVote, onReply, currentUser }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: replyContent.trim() })
       });
+      
       if (response.ok) {
+        const result = await response.json();
         setReplyContent('');
         fetchReplies();
+        
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.className = 'notification success';
+        notification.textContent = 'Comment posted successfully!';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
       } else {
-        alert('Failed to post comment');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to post comment');
       }
     } catch (error) {
-      alert('Failed to post comment');
+      console.error('Error posting reply:', error);
+      
+      // Show error notification
+      const notification = document.createElement('div');
+      notification.className = 'notification error';
+      notification.textContent = error.message || 'Failed to post comment';
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
     } finally {
       setIsSubmittingReply(false);
     }
