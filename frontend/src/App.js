@@ -289,13 +289,47 @@ function App() {
     }
   };
 
-  // Fetch confessions
-  const fetchConfessions = async () => {
+  // Fetch confessions with filter
+  const fetchConfessions = async (filter = activeFilter) => {
     try {
       setIsLoading(true);
-      // Add cache-busting parameter to ensure fresh data
       const timestamp = Date.now();
-      const response = await fetch(`${API}/confessions/public?sort_by=timestamp&order=desc&_t=${timestamp}`);
+      
+      // Build query parameters based on filter
+      let sortBy = 'timestamp';
+      let order = 'desc';
+      let endpoint = 'public';
+      
+      switch (filter) {
+        case 'latest':
+          sortBy = 'timestamp';
+          order = 'desc';
+          endpoint = 'confessions/public';
+          break;
+        case 'trending':
+          endpoint = 'trending';
+          break;
+        case 'popular':
+          sortBy = 'upvotes';
+          order = 'desc';
+          endpoint = 'confessions/public';
+          break;
+        case 'new':
+          sortBy = 'timestamp';
+          order = 'desc';
+          endpoint = 'confessions/public';
+          break;
+        default:
+          sortBy = 'timestamp';
+          order = 'desc';
+          endpoint = 'confessions/public';
+      }
+      
+      const url = filter === 'trending' 
+        ? `${API}/${endpoint}?_t=${timestamp}`
+        : `${API}/${endpoint}?sort_by=${sortBy}&order=${order}&_t=${timestamp}`;
+      
+      const response = await fetch(url);
       if (response && response.ok) {
         const data = await response.json();
         setConfessions(data.confessions || []);
@@ -317,7 +351,7 @@ function App() {
     if (newConfession && newConfession.tx_id) {
       // Add a small delay to ensure backend has processed the confession
       setTimeout(() => {
-        fetchConfessions();
+        fetchConfessions(activeFilter);
       }, 500);
       showNotification('Confession posted successfully!', 'success');
     }
@@ -365,6 +399,7 @@ function App() {
   // Handle filter change
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
+    fetchConfessions(filter);
   };
 
   // Handle login
@@ -392,9 +427,9 @@ function App() {
 
   // Load data on mount
   useEffect(() => {
-    fetchConfessions();
+    fetchConfessions(activeFilter);
     fetchNetworkInfo();
-  }, [activeFilter]);
+  }, []);
 
   return (
     <div className="app">
