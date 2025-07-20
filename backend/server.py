@@ -1045,6 +1045,7 @@ async def get_public_confessions(
         print(f"Public confessions in DB: {public_confessions}")
         
         # Simplified filter - just get public confessions
+        print(f"Sorting by: {sort_param}")
         cursor = db.confessions.find(
             {"is_public": True},
             {"_id": 0}

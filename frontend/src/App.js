@@ -295,43 +295,31 @@ function App() {
       setIsLoading(true);
       const timestamp = Date.now();
       
-      // Build query parameters based on filter
-      let sortBy = 'timestamp';
-      let order = 'desc';
-      let endpoint = 'public';
+      let url;
       
       switch (filter) {
         case 'latest':
-          sortBy = 'timestamp';
-          order = 'desc';
-          endpoint = 'confessions/public';
+          url = `${API}/confessions/public?sort_by=timestamp&order=desc&_t=${timestamp}`;
           break;
         case 'trending':
-          endpoint = 'trending';
+          url = `${API}/trending?_t=${timestamp}`;
           break;
         case 'popular':
-          sortBy = 'upvotes';
-          order = 'desc';
-          endpoint = 'confessions/public';
+          url = `${API}/confessions/public?sort_by=upvotes&order=desc&_t=${timestamp}`;
           break;
         case 'new':
-          sortBy = 'timestamp';
-          order = 'desc';
-          endpoint = 'confessions/public';
+          url = `${API}/confessions/public?sort_by=timestamp&order=desc&_t=${timestamp}`;
           break;
         default:
-          sortBy = 'timestamp';
-          order = 'desc';
-          endpoint = 'confessions/public';
+          url = `${API}/confessions/public?sort_by=timestamp&order=desc&_t=${timestamp}`;
       }
       
-      const url = filter === 'trending' 
-        ? `${API}/${endpoint}?_t=${timestamp}`
-        : `${API}/${endpoint}?sort_by=${sortBy}&order=${order}&_t=${timestamp}`;
+      console.log(`Fetching confessions with filter: ${filter}, URL: ${url}`);
       
       const response = await fetch(url);
       if (response && response.ok) {
         const data = await response.json();
+        console.log(`Received ${data.confessions?.length || 0} confessions for filter: ${filter}`);
         setConfessions(data.confessions || []);
         setConnectionError(false);
       } else {
@@ -398,6 +386,7 @@ function App() {
 
   // Handle filter change
   const handleFilterChange = (filter) => {
+    console.log(`Filter changed to: ${filter}`);
     setActiveFilter(filter);
     fetchConfessions(filter);
   };
