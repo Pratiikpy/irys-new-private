@@ -1557,6 +1557,11 @@ async def verify_transaction(tx_id: str):
 # Include the router in the main app
 app.include_router(api_router)
 
+@app.get("/")
+async def root_app():
+    """Root endpoint for the main app"""
+    return {"message": "Irys Confession Board API", "status": "running", "version": "2.0"}
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

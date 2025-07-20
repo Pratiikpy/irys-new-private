@@ -293,7 +293,9 @@ function App() {
   const fetchConfessions = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API}/confessions/public?sort_by=timestamp&order=desc`);
+      // Add cache-busting parameter to ensure fresh data
+      const timestamp = Date.now();
+      const response = await fetch(`${API}/confessions/public?sort_by=timestamp&order=desc&_t=${timestamp}`);
       if (response && response.ok) {
         const data = await response.json();
         setConfessions(data.confessions || []);
@@ -313,7 +315,10 @@ function App() {
   // Handle new confession
   const handleNewConfession = (newConfession) => {
     if (newConfession && newConfession.tx_id) {
-      setConfessions(prev => [newConfession, ...prev]);
+      // Add a small delay to ensure backend has processed the confession
+      setTimeout(() => {
+        fetchConfessions();
+      }, 500);
       showNotification('Confession posted successfully!', 'success');
     }
   };
